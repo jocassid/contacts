@@ -15,3 +15,5 @@ content types, etc.
 - add `'main'` to the list of `INSTALLED_APPS` in `settings.py`
 - added `include` for main app to `contacts/urls.py`
 - make sure to add `./manage.py` to source control
+- added STATICFILES_DIRS to create a project-wide location for static files
+- Downloaded latest JQuery code and placed in `static` directory.
