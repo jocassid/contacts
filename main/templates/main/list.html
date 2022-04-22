@@ -4,6 +4,28 @@
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
+<style>
+    th, td{
+        padding: 0.125rem;
+    }
+    button{
+        color: white;
+        border: none;
+        padding: 0.125rem;
+    }
+    button.edit{
+        background: blue;
+    }
+    button.save{
+        background: green;
+    }
+    button.cancel{
+        background: red;
+    }
+    button.new{
+        background: blue;
+    }
+</style>
 <body>
   <h1>List Contacts</h1>
 
@@ -17,13 +39,22 @@
     </tr>
   {% for contact in contacts %}
     <tr data-pk="{{ contact.pk }}">
-      <td></td>
+      <td>
+          <button class="edit">Edit</button>
+          <button class="save" style="display: none">Save</button>
+          <button class="cancel" style="display: none">Cancel</button>
+      </td>
       <td>{{ contact.first_name }}</td>
       <td>{{ contact.last_name }}</td>
       <td>{{ contact.mobile_phone }}</td>
       <td>{{ contact.email }}</td>
     </tr>
   {% endfor %}
+    <tr>
+      <td colspan="5">
+        <button class="new">New</button>
+      </td>
+    </tr>
   </table>
 
 </body>
