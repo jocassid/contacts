@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+  <h1>List Contacts</h1>
+
+  <table border="2">
+    <tr>
+      <th>Action</th>
+      <th>First</th>
+      <th>Last</th>
+      <th>Mobile</th>
+      <th>Email</th>
+    </tr>
+  {% for contact in contacts %}
+    <tr data-pk="{{ contact.pk }}">
+      <td></td>
+      <td>{{ contact.first_name }}</td>
+      <td>{{ contact.last_name }}</td>
+      <td>{{ contact.mobile_phone }}</td>
+      <td>{{ contact.email }}</td>
+    </tr>
+  {% endfor %}
+  </table>
+
+</body>
+</html>
