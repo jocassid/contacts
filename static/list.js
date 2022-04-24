@@ -69,11 +69,28 @@ function setInputField(index, textDiv)
     }
 
     input = $(document.createElement('input'));
-    input.attr('name', 'fieldClass');
+    input.attr('name', fieldClass);
     input.addClass('edit');
     input.addClass(fieldClass);
     textDiv.after(input);
     input.val(displayText);
+}
+
+
+function setDisplayFields(row, contact_json)
+{
+    for(const cssClass in fieldClasses)
+    {
+        let div = row.find(`div.${cssClass}`).first();
+        if(div.length === 0)
+            continue;
+
+        let value = contact_json[cssClass];
+        if(!value)
+            continue;
+
+        div.text(value);
+    }
 }
 
 
@@ -160,7 +177,8 @@ function saveClicked(event)
         },
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
-        data: JSON.stringify(data)
+        data: JSON.stringify(data),
+        context: row
     };
 
     if(pk)
@@ -174,16 +192,41 @@ function saveClicked(event)
         ajaxSettings.method = 'POST';
     }
 
-    $.ajax(ajaxSettings);
+    $.ajax(
+        ajaxSettings
+    ).done(
+        function(data)
+        {
+            let row = this;
+            row.attr('data-pk', data.pk);
+            cancelClickedInner(row);
+            setDisplayFields(row, data);
+        }
+    ).fail(
+        function(jqXHR, textStatus, errorThrown)
+        {
+            alert(jqXHR.responseJSON.errors.join(' | '));
+        }
+    );
 }
 
 
 function cancelClicked(event)
 {
-    let tr = getEventRow(event);
-    toggleRowButtons(tr);
-    tr.find('div.display').show();
-    tr.find('input.edit').hide();
+    let row = getEventRow(event);
+    cancelClickedInner(row);
+}
+
+function cancelClickedInner(row)
+{
+    toggleRowButtons(row);
+    row.find('div.display').show();
+    row.find('input.edit').hide();
+
+    for(const cssClass in fieldClasses)
+    {
+        row.find(`input.${cssClass}`).val("");
+    }
 }
 
 

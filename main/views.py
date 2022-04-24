@@ -1,5 +1,6 @@
 
 from json import loads, JSONDecodeError
+from random import randint
 
 from django.http import JsonResponse
 from django.views import View
@@ -63,6 +64,17 @@ class ContactRestView(View):
             status=400,
         )
 
+    def validate_contact_json(self, contact_json):
+        errors = []
+        for field, label in self.FIELDS_AND_LABELS.items():
+            value = contact_json.get(field)
+            if value:
+                if not isinstance(value, str):
+                    errors.append(f"{value!r} is not a string")
+            else:
+                errors.append(f"Missing {label}")
+        return errors
+
 
 class ContactNewRestView(ContactRestView):
 
@@ -79,18 +91,15 @@ class ContactNewRestView(ContactRestView):
                 [self.generic_error_message(self.ERROR_PK_ALREADY_SET)],
             )
 
-        errors = []
-        for field, label in self.FIELDS_AND_LABELS.items():
-            value = contact_json.get(field)
-            if value:
-                if not isinstance(value, str):
-                    errors.append(f"{value!r} is not a string")
-            else:
-                errors.append(f"Missing {label}")
+        errors = self.validate_contact_json(contact_json)
+        if errors:
+            return self.error_response(errors)
 
+        # Create Contact record
 
-
-
+        # update contact_json with pk of new record.  For now I'm just using
+        # a random number
+        contact_json['pk'] = randint(1, 999999)
 
         return JsonResponse(contact_json, status=201)
 
