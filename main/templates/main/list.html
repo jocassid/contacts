@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>List Contacts</title>
     <script src="{% static 'jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'js.cookie.min.js' %}"></script>
 </head>
 <style>
     table{
@@ -35,42 +36,45 @@
 <body>
   <h1>List Contacts</h1>
 
-  <table id="contactList">
-    <tr>
-      <th>Action</th>
-      <th>First</th>
-      <th>Last</th>
-      <th>Mobile</th>
-      <th>Email</th>
-    </tr>
-  {% for contact in contacts %}
-    <tr data-pk="{{ contact.pk }}">
-      <td>
-          <button class="edit">Edit</button>
-          <button class="save" style="display: none">Save</button>
-          <button class="cancel" style="display: none">Cancel</button>
-      </td>
-      <td>
-          <div class="display first_name">{{ contact.first_name }}</div>
-      </td>
-      <td>
-          <div class="display last_name">{{ contact.last_name }}</div>
-      </td>
-      <td>
-          <div class="display mobile_phone">{{ contact.mobile_phone }}</div>
-      </td>
-      <td>
-          <div class="display email">{{ contact.email }}</div>
-      </td>
-    </tr>
-  {% endfor %}
-    <tr>
-      <td colspan="5">
-        <button class="new">New</button>
-      </td>
-    </tr>
-  </table>
+  <form>
+    {% csrf_token %}
+    <table id="contactList">
+      <tr>
+        <th>Action</th>
+        <th>First</th>
+        <th>Last</th>
+        <th>Mobile</th>
+        <th>Email</th>
+      </tr>
+      {% for contact in contacts %}
+        <tr data-pk="{{ contact.pk }}">
+          <td>
+            <button class="edit">Edit</button>
+            <button class="save" style="display: none">Save</button>
+            <button class="cancel" style="display: none">Cancel</button>
+          </td>
+          <td>
+            <div class="display first_name">{{ contact.first_name }}</div>
+          </td>
+          <td>
+            <div class="display last_name">{{ contact.last_name }}</div>
+          </td>
+          <td>
+            <div class="display mobile_phone">{{ contact.mobile_phone }}</div>
+          </td>
+          <td>
+            <div class="display email">{{ contact.email }}</div>
+          </td>
+        </tr>
+      {% endfor %}
+        <tr>
+          <td colspan="5">
+            <button class="new">New</button>
+          </td>
+        </tr>
+      </table>
+  </form>
 
-    <script src="{% static 'list.js' %}"></script>
+  <script src="{% static 'list.js' %}"></script>
 </body>
 </html>

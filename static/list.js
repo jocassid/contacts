@@ -1,25 +1,34 @@
 
-const fieldClasses = [
-    'first_name',
-    'last_name',
-    'mobile_phone',
-    'email'
-];
+const fieldClasses = {
+    first_name: 'First Name',
+    last_name: 'Last Name',
+    mobile_phone: 'Mobile Phone',
+    email: 'Email'
+};
+
+let csrfToken = '';
 
 function getFieldClass(textDivJQuery)
 {
     let element = textDivJQuery[0];
     for(const cssClass of element.classList)
     {
-        if(fieldClasses.includes(cssClass))
+        if(fieldClasses.hasOwnProperty(cssClass))
             return cssClass;
     }
     return null;
 }
 
+function groundEvent(event)
+{
+    event.preventDefault();
+    event.stopPropagation();
+}
+
 
 function getEventRow(event)
 {
+    groundEvent(event);
     return $(event.target).parents('tr');
 }
 
@@ -70,26 +79,102 @@ function setInputField(index, textDiv)
 
 function newClicked(event)
 {
-    console.log('newClicked');
+    let lastRow = getEventRow(event);
+    lastRow.before(
+        '<tr data-pk="">\n' +
+            '<td>\n' +
+                '<button class="edit">Edit</button>\n' +
+                '<button class="save" style="display: none">Save</button>\n' +
+                '<button class="cancel" style="display: none">Cancel</button>\n' +
+            '</td>\n' +
+            '<td>\n' +
+                '<div class="display first_name"></div>\n' +
+            '</td>\n' +
+            '<td>\n' +
+                '<div class="display last_name"></div>\n' +
+            '</td>\n' +
+            '<td>\n' +
+                '<div class="display mobile_phone"></div>\n' +
+            '</td>\n' +
+            '<td>\n' +
+                '<div class="display email"></div>\n' +
+            '</td>\n' +
+        '</tr>\n'
+    );
+
+    let newRow = lastRow.prev();
+    newRow.find('button.edit').click(editClicked);
+    newRow.find('button.save').click(saveClicked);
+    newRow.find('button.cancel').click(cancelClicked);
+    editClickedInner(newRow);
 }
 
 
 function editClicked(event)
 {
     let tr = getEventRow(event);
+    editClickedInner(tr);
+}
+
+
+function editClickedInner(row)
+{
+    // I seperated this from editClicked so when the new button is clicked
+    // the new row is placed into an edit state.
 
     // hide the text used to display the value
-    let display = tr.find("div.display");
+    let display = row.find("div.display");
     display.hide();
     display.each(setInputField);
 
-    toggleRowButtons(tr);
+    toggleRowButtons(row);
 }
 
 
 function saveClicked(event)
 {
-    console.log('saveClicked');
+    let row = getEventRow(event);
+    let pk = row.attr('data-pk') || null;
+
+    let data = {
+        pk: pk
+    };
+
+    for(const cssClass in fieldClasses)
+    {
+        let description = fieldClasses[cssClass];
+        let value = row.find(`input.${cssClass}`).val();
+        if(!value)
+        {
+            alert(`Enter a value for ${description}`);
+            return;
+        }
+        data[cssClass] = value;
+    }
+
+    let ajaxSettings = {
+        url: null,
+        method: null,
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        data: JSON.stringify(data)
+    };
+
+    if(pk)
+    {
+        ajaxSettings.url = `/contacts/${pk}/`;
+        ajaxSettings.method = 'PUT';
+    }
+    else
+    {
+        ajaxSettings.url = '/contacts/';
+        ajaxSettings.method = 'POST';
+    }
+
+    $.ajax(ajaxSettings);
 }
 
 
@@ -104,6 +189,8 @@ function cancelClicked(event)
 
 function documentReady()
 {
+    csrfToken = Cookies.get('csrftoken');
+
     // Set up event handlers
     $('button.new').click(newClicked);
     $('button.edit').click(editClicked);
