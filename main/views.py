@@ -1,7 +1,7 @@
 
 from json import loads, JSONDecodeError
-from random import randint
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.views import View
 from django.views.generic import TemplateView
@@ -18,8 +18,9 @@ class ListView(TemplateView):
         and then have the JavaScript perform a request to get a list of
         Contacts"""
 
-        contacts = Contact.objects.__dict__
-        return contacts
+        return {
+            'contacts': Contact.objects.all()
+        }
 
 
 class ContactRestView(View):
@@ -27,11 +28,12 @@ class ContactRestView(View):
 
     ERROR_INVALID_JSON = 1
     ERROR_PK_ALREADY_SET = 2
+    ERROR_MISSING_INVALID_PK = 3
 
     FIELDS_AND_LABELS = {
         'first_name': 'First Name',
         'last_name': 'Last Name',
-        'mobile_phone': 'Mobile Phone',
+        'mobile': 'Mobile Phone',
         'email': 'Email',
     }
 
@@ -40,25 +42,28 @@ class ContactRestView(View):
         return f"Invalid request.  Error code {error_code}"
 
     @staticmethod
-    def error_response(errors):
+    def error_response(errors, status=400):
         """
         param errors:  A list of strings
         """
         return JsonResponse(
             {'errors': errors},
-            status=400,
+            status=status,
         )
 
     def validate_contact_json(self, contact_json):
         errors = []
+        contact_kwargs = {}
         for field, label in self.FIELDS_AND_LABELS.items():
             value = contact_json.get(field)
             if value:
-                if not isinstance(value, str):
+                if isinstance(value, str):
+                    contact_kwargs[field] = value
+                else:
                     errors.append(f"{value!r} is not a string")
             else:
                 errors.append(f"Missing {label}")
-        return errors
+        return errors, contact_kwargs
 
 
 class ContactNewRestView(ContactRestView):
@@ -76,16 +81,12 @@ class ContactNewRestView(ContactRestView):
                 [self.generic_error_message(self.ERROR_PK_ALREADY_SET)],
             )
 
-        errors = self.validate_contact_json(contact_json)
+        errors, contact_kwargs = self.validate_contact_json(contact_json)
         if errors:
             return self.error_response(errors)
 
-        # Create Contact record
-
-        # update contact_json with pk of new record.  For now I'm just using
-        # a random number
-        contact_json['pk'] = randint(1, 999999)
-
+        contact = Contact.objects.create(**contact_kwargs)
+        contact_json['pk'] = contact.pk
         return JsonResponse(contact_json, status=201)
 
 
@@ -93,5 +94,36 @@ class ContactUpdateRestView(ContactRestView):
     """Django REST framework is better for this sort of thing."""
 
     def put(self, request, *args, **kwargs):
-        """Update a Contact"""
-        return JsonResponse({}, status=200)
+        try:
+            contact_json = loads(request.body)
+        except JSONDecodeError:
+            return self.error_response(
+                [self.generic_error_message(self.ERROR_INVALID_JSON)],
+            )
+
+        try:
+            pk = int(contact_json['pk'])
+            if pk < 1:
+                raise ValueError('pk must be greater than 0')
+        except (KeyError, TypeError, ValueError):
+            return self.error_response(
+                [self.generic_error_message(self.ERROR_MISSING_INVALID_PK)]
+            )
+
+        errors, contact_kwargs = self.validate_contact_json(contact_json)
+        if errors:
+            return self.error_response(errors)
+
+        try:
+            contact = Contact.objects.get(pk=pk)
+        except ObjectDoesNotExist:
+            return self.error_response(
+                ['Contact not found'],
+                status=404,
+            )
+
+        for field in self.FIELDS_AND_LABELS.keys():
+            setattr(contact, field, contact_json.get(field))
+        contact.save()
+
+        return JsonResponse(contact_json, status=200)

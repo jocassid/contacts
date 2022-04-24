@@ -2,7 +2,7 @@
 const fieldClasses = {
     first_name: 'First Name',
     last_name: 'Last Name',
-    mobile_phone: 'Mobile Phone',
+    mobile: 'Mobile Phone',
     email: 'Email'
 };
 
@@ -111,7 +111,7 @@ function newClicked(event)
                 '<div class="display last_name"></div>\n' +
             '</td>\n' +
             '<td>\n' +
-                '<div class="display mobile_phone"></div>\n' +
+                '<div class="display mobile"></div>\n' +
             '</td>\n' +
             '<td>\n' +
                 '<div class="display email"></div>\n' +

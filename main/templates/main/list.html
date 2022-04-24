@@ -41,9 +41,9 @@
     <table id="contactList">
       <tr>
         <th>Action</th>
-        <th>First</th>
-        <th>Last</th>
-        <th>Mobile</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Mobile Phone</th>
         <th>Email</th>
       </tr>
       {% for contact in contacts %}
@@ -60,7 +60,7 @@
             <div class="display last_name">{{ contact.last_name }}</div>
           </td>
           <td>
-            <div class="display mobile_phone">{{ contact.mobile_phone }}</div>
+            <div class="display mobile">{{ contact.mobile }}</div>
           </td>
           <td>
             <div class="display email">{{ contact.email }}</div>
