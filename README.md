@@ -1,6 +1,13 @@
 # contacts
 An example Django app for a demo/tutorial
 
+# Resources
+- https://www.djangoproject.com/
+- https://developer.mozilla.org/en-US/
+- https://djangogirls.org/en/
+- https://realpython.com/search?q=django
+
+
 ## Notes
 - created contacts directory to hold source code (did this via
 `git clone`) and ran `django-admin startproject contacts .` from 
